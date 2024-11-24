@@ -1,0 +1,11 @@
+﻿fake-useragent==1.5.1
+selenium==4.25.0
+webdriver-manager==4.0.2
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+gunicorn==23.0.0
+SQLAlchemy==2.0.36
+blinker==1.7.0
+selenium-wire==5.1.0
+Flask-Migrate==4.0.7
+psycopg2-binary==2.9.10
