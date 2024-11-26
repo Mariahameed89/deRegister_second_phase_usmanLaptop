@@ -12,7 +12,7 @@ def create_app():
     app.config['SECRET_KEY'] = '434c29b387cb5f2b1f0694d7374865fe92c277150dcd8b24'
 
     # Configurations
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'  # Database file path
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://u27enindbj861o:p98f66ffaa6836c3d535d8f81cab0736fff97716b759cebc6e3a63aec84899a12@c5hilnj7pn10vb.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d24vme4osao8jt'  # Database file path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
 
     # Initialize extensions
