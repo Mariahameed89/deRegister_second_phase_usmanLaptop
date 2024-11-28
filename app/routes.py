@@ -20,6 +20,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 main_bp = Blueprint('main', __name__)
 
 def browser_init():
+    print('Starting Chrome...')
     try:
         proxy_username = "9fa3c330655cbd7ee012"
         proxy_password = "3607b7d7a975d149"
@@ -47,6 +48,7 @@ def browser_init():
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_argument('--ignore-certificate-errors-spki-list')
         chrome_options.add_argument('--ignore-ssl-errors')
+        chrome_options.add_argument('--acceptInsecureCerts')
         chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
         
@@ -147,23 +149,24 @@ def customer():
             def run_automation():
                 try:
                     webdriver = browser_init()
-                    four_digit_code, password = bot_automation(order_id, webdriver)
+                    # four_digit_code, password = bot_automation(order_id, webdriver)
 
-                    print(f"Received pin_code: {four_digit_code} and password: {password}")
-                    if four_digit_code:                      
-                        try:
-                            # generate a new database session for this thread
-                            Session = sessionmaker(bind=db.engine)
-                            session = Session()
-                            order = session.query(Order).filter_by(order_id=order_id).first()
-                            order.pin_code = four_digit_code
-                            order.password = password
-                            session.commit()
-                            print("Order updated successfully!")
-                        except Exception as e:
-                            print(f"Error updating order: {e}")
-                        finally:
-                            session.close()
+                    # print(f"Received pin_code: {four_digit_code} and password: {password}")
+                    # if four_digit_code:                      
+                    try:
+                        # generate a new database session for this thread
+                        Session = sessionmaker(bind=db.engine)
+                        session = Session()
+                        bot_automation(order_id, webdriver,session)
+                        # order = session.query(Order).filter_by(order_id=order_id).first()
+                        # order.pin_code = four_digit_code
+                        # order.password = password
+                        # session.commit()
+                        # print("Order updated successfully!")
+                    except Exception as e:
+                        print(f"Error updating order: {e}")
+                    finally:
+                        session.close()
 
 
 

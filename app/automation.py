@@ -16,7 +16,7 @@ import random
 # separte method for browser initialization and return the driver object
 
 
-def bot_automation(order_id,driver):
+def bot_automation(order_id,driver,session):
     def enter_password(driver, password):
         """Enter password and proceed if the password field is visible."""
         try:
@@ -57,8 +57,8 @@ def bot_automation(order_id,driver):
         try:
             # Wait for Deregister button to appear
             deregister_button = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "group"))
-            )
+                    EC.element_to_be_clickable((By.CLASS_NAME, "group"))
+                )
 
             # Check if Deregister button is disabled
             if not deregister_button.is_enabled():
@@ -75,6 +75,13 @@ def bot_automation(order_id,driver):
             deregister_button = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "group"))
             )
+
+            # if degregister button is not found then try with same class name and different tag
+            if not deregister_button:
+                deregister_button = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'group')]"))
+                )
+
             if deregister_button.is_enabled():
                 deregister_button.click()
                 print("Deregister button clicked!")
@@ -84,13 +91,15 @@ def bot_automation(order_id,driver):
                     EC.element_to_be_clickable((By.CSS_SELECTOR, "button.bg-nintendo-red"))
                 )
                 confirm_button.click()
-                print("Confirm button clicked")
+                print("Confirm button clicked for de-registration!")
 
                 # Final de-registration confirmation
+                # look for any clickable button and click it
                 final_button = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.bg-nintendo-red"))
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button"))
                 )
                 final_button.click()
+
                 print("Account has been de-registered")
                 return True
         except Exception as e:
@@ -245,6 +254,40 @@ def bot_automation(order_id,driver):
                 time.sleep(2)
                 four_digit_code = code_element.text
                 print(f"5-digit code is: {four_digit_code}")
+                order = session.query(Order).filter_by(order_id=order_id).first()
+                order.pin_code = four_digit_code
+                order.password = password
+                session.commit()
+                print("Order updated successfully!")
+
+                # Deregisteration Process
+
+                driver.get("https://ec.nintendo.com/my/devices/unlink")
+
+                # if screen has password field then enter password and click continue
+                if "reauthenticate-form_pc_input_0" in driver.page_source:
+                 # Step 1: Enter password to proceed if the page asks for it
+                    print("Password field found in deregisteration. Proceeding to next step...")
+                    enter_password(driver, password)
+                else:
+                    print("Password field not required in deregisteration. Proceeding to next step...")
+
+                # Step 2: Sequentially handle cases based on the new requirements
+                # Check for the 'session invalid' error and reload the page if found
+                if reload_page_invalid_error(driver):
+                    enter_password(driver, password)
+                    if reload_page_invalid_error(driver):
+                        print("Error persists after reloading. Stopping automation.")
+                    elif deregister_account_disabled_button_case(driver):
+                        print("Automation stopped due to disabled button.")
+                    else:
+                        deregister_account_enabled_button_case(driver)
+                # Check if Deregister button is disabled and stop if so
+                elif deregister_account_disabled_button_case(driver):
+                    print("Automation stopped due to disabled button.")
+                # Proceed with deregistration if the button is enabled
+                else:
+                    deregister_account_enabled_button_case(driver)
 
             except Exception as error:
                 print("5-digit code not found.")
@@ -254,32 +297,7 @@ def bot_automation(order_id,driver):
 
     finally:
         # clear cookies and navigate to accounts.nintendo.com/logout
-        try:
-            # Open the page
-            driver.get("https://ec.nintendo.com/my/devices/unlink")
-
-            # Step 1: Enter password to proceed if the page asks for it
-            enter_password(driver, password)
-
-            # Step 2: Sequentially handle cases based on the new requirements
-            # Check for the 'session invalid' error and reload the page if found
-            if reload_page_invalid_error(driver):
-                enter_password(driver, password)
-                if reload_page_invalid_error(driver):
-                    print("Error persists after reloading. Stopping automation.")
-                elif deregister_account_disabled_button_case(driver):
-                    print("Automation stopped due to disabled button.")
-                else:
-                    deregister_account_enabled_button_case(driver)
-            # Check if Deregister button is disabled and stop if so
-            elif deregister_account_disabled_button_case(driver):
-                print("Automation stopped due to disabled button.")
-            # Proceed with deregistration if the button is enabled
-            else:
-                deregister_account_enabled_button_case(driver)
-        except Exception as error:
-            print(f"Unexpected error encountered: {error}")
-
+        
         driver.delete_all_cookies()
         driver.quit()
         print("Cookies deleted and driver quit successfully!")
