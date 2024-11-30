@@ -275,8 +275,8 @@
                     localStorage.removeItem('accessCode');
 
                     //  <!-- start a timer from 45 seconds backward -->
-                    let timeleft = 45;
-                    // show timer and message that processing will be completed within 45 seconds and do not close the browser
+                    let timeleft = 60;
+                    // show timer and message that processing will be completed within 60 seconds and do not close the browser
                     let downloadTimer = setInterval(function(){
                         document.getElementById("notificationMessage").innerHTML = `Processing will be completed within ${timeleft} seconds. Please do not close the browser.`;
                         timeleft -= 1;
